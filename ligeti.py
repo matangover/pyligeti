@@ -2,13 +2,14 @@ import abjad
 import random
 import time
 import math
+import os
+
+SCORE_NAME = "Überfaotzel"
 
 def main():
-    seed = time.time()
-    random.seed(seed)
-    print(seed)
+    init_random()
 
-    score_path = "/Users/matan/Documents/code/composition/magicflute-00-overture-lys/adagioI_score_flat_orig.ly"
+    score_path = os.path.join(os.path.dirname(__file__), "scores", SCORE_NAME, "input", "score.ly")
     with open(score_path) as input_file:
         parser = abjad.lilypondparsertools.LilyPondParser(default_language="nederlands")
         overture = parser(input_file.read())
@@ -34,6 +35,12 @@ def main():
         #    pitch_adjustment_semitones = random.randint()
 
     abjad.show(overture)
+
+def init_random():
+    seed = time.time()
+    random.seed(seed)
+    print(seed)
+    return seed
 
 if __name__ == "__main__":
     main()
