@@ -7,6 +7,10 @@ END_DATE = "1990/2/18"
 BARS_PER_DAY = 4
 MAX_TUPLET = 7
 
+DISTANCE_SCALE = 500
+PITCH_MIN = -32
+PITCH_MAX = 32
+
 def main():
     objects = (ephem.Mercury(), ephem.Venus(), ephem.Mars(), ephem.Jupiter(),
         ephem.Saturn(), ephem.Uranus(), ephem.Neptune())
@@ -22,7 +26,7 @@ def main():
         while observer.date < ephem.Date(END_DATE):
             next_rising = observer.next_rising(o)
             next_setting = observer.next_setting(o)
-            events.append((next_rising, next_setting))
+            events.append((next_rising, next_setting, o.earth_distance))
             observer.date = next_setting
         object_events.append(events)
 
@@ -32,12 +36,12 @@ def main():
         staff = abjad.Staff()
         staves.append(staff)
         current_time = ephem.Date(START_DATE)
-        for event_start, event_stop in object_events:
+        for event_start, event_stop, distance in object_events:
             # add rest to fill time until event start
             rest_duration = get_duration_from_interval(event_start - current_time)
             staff.extend(make_rests(rest_duration))
             note_duration = get_duration_from_interval(event_stop - event_start)
-            staff.extend(make_notes(note_duration))
+            staff.extend(make_notes(note_duration, get_pitch(distance)))
             current_time = event_stop
     abjad.show(abjad.Score(staves))
 
@@ -88,6 +92,10 @@ def make_notes(duration, pitch=0):
 def change_notes_to_rests(container):
     for i, note in enumerate(container):
         container[i] = abjad.Rest(note.written_duration)
+
+def get_pitch(distance):
+    # distance is in AU (mean distance from Earth to sun)
+    return round(distance * DISTANCE_SCALE) % abs(PITCH_MAX - PITCH_MIN) + PITCH_MIN
 
 # first instrument per planet - dynamic according to distance
 # then instruments from different locations on same planets
